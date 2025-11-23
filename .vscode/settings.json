@@ -1,0 +1,10 @@
+{
+    "files.associations": {
+        "*.y": "bison",
+        "string": "cpp"
+    },
+    "C_Cpp.default.includePath": [
+        "/opt/homebrew/include",
+         "${workspaceFolder}/scheduling/include"
+    ]
+}
