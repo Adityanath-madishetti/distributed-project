@@ -149,7 +149,9 @@ struct PeerNetworkInfo {
 PeerNetworkInfo all_peers[TOTAL_PEERS] = {
     {1, "127.0.0.1", 8001},
     {2, "127.0.0.1", 8002},
-    {3, "127.0.0.1", 8003}
+    {3, "127.0.0.1", 8003},
+    // {4, "127.0.0.1", 8004},
+    // {5,"127.0.0.1",8005}
 };
 
 struct LoadInfo {
@@ -476,7 +478,7 @@ public:
                     
                    file << "\n[RECEIVED] Job " << job.job_id << " from job thrower" << std::endl;
                     handle_incoming_job(job, -1);
-                }else if(job_json["type"]=="completed"){
+                }else if(job_json["type"]=="request_stats"){
                     load_track_mutex.lock();
                     auto [m,s]=mean_and_stddev(load_tracker);
                     load_track_mutex.unlock();
@@ -850,6 +852,8 @@ public:
     }
 
 
+    // this is there to exeucte this periodically so to account how load is 
+    // i.e is puts values into load tracker
     void track_loads(){
         
         while(running){
@@ -857,7 +861,7 @@ public:
             load_track_mutex.lock();
             load_tracker.push_back(load_value);
             load_track_mutex.unlock();
-            std::this_thread::sleep_for(std::chrono::minutes(1));
+            std::this_thread::sleep_for(std::chrono::seconds(30));
         }
     }
     
