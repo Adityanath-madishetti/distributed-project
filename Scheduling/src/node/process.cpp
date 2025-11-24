@@ -24,7 +24,7 @@ using json = nlohmann::json;
 #define JOB_THROWER_IP "127.0.0.1"
 #define JOB_THROWER_PORT 9000
 
-#define ACCEPT_THRESHOLD 0.45
+#define ACCEPT_THRESHOLD 0.65
 #define GOSSIP_INTERVAL_MS 1500
 #define GOSSIP_FANOUT 2
 #define STALE_THRESHOLD_MS 12000
@@ -94,6 +94,26 @@ std::pair<bool, int> recv_string(int descriptor, std::string& msg) {
     if (n == NET_ERR_PEER_CLOSED) return {false, NET_ERR_PEER_CLOSED};
     if (n < 0) return {false, static_cast<int>(n)};
     return {true, NET_OK};
+}
+
+std::pair<double, double> mean_and_stddev(const std::vector<double>& a) {
+    if (a.empty()) {
+        return {0.0, 0.0};  // or throw exception if preferred
+    }
+
+    double sum = 0.0;
+    for (double x : a) sum += x;
+
+    double mean = sum / a.size();
+
+    double sq_sum = 0.0;
+    for (double x : a) {
+        sq_sum += (x - mean) * (x - mean);
+    }
+
+    double stddev = std::sqrt(sq_sum / a.size());  // population stddev
+
+    return {mean, stddev};
 }
 
 int connect_to_server(const std::string &ip, int port) {
@@ -176,6 +196,15 @@ private:
     std::map<int, PeerConnection*> peer_connections;
     std::mutex peer_connections_mutex;
     
+    std::atomic<int>jobs_forwarded; // your forwarded jobs
+    std::atomic<int>jobs_executed; // number of jobs u executed
+    std::atomic<int>forward_receives; // recevied from peers
+    std::atomic<int>direct_receives; // received from thrower
+    std::vector<int>forwarded_jobs; 
+    std::vector<int>executed_jobs;
+    std::vector<double> load_tracker;
+    std::mutex load_track_mutex;
+
     std::atomic<int> current_cpu_used;
     std::atomic<int> current_memory_used;
     std::map<int, LoadInfo> load_table;
@@ -436,6 +465,7 @@ public:
             try {
                 json job_json = json::parse(msg);
                 if (job_json["type"] == "job") {
+                    direct_receives++;
                     Job job;
                     job.job_id = job_json["job_id"];
                     job.cpu_required = job_json["cpu_required"];
@@ -446,7 +476,17 @@ public:
                     
                    file << "\n[RECEIVED] Job " << job.job_id << " from job thrower" << std::endl;
                     handle_incoming_job(job, -1);
+                }else if(job_json["type"]=="completed"){
+                    load_track_mutex.lock();
+                    auto [m,s]=mean_and_stddev(load_tracker);
+                    load_track_mutex.unlock();
+                    json j ;
+                    j["load"]=m;
+                    j["type"]="my_avg_load";
+                    std::string str =j.dump();
+                    send_string(job_thrower_socket,str);
                 }
+                msg="";
             } catch (const std::exception& e) {
                 std::cerr << "Error parsing job from job thrower: " << e.what() << std::endl;
             }
@@ -475,6 +515,7 @@ public:
                 if (message["type"] == "gossip_load") {
                     handle_gossip_message(message);
                 } else if (message["type"] == "job_forward") {
+                    forward_receives++;
                     Job job;
                     job.job_id = message["job_id"];
                     job.cpu_required = message["cpu_required"];
@@ -496,7 +537,7 @@ public:
         if (can_accept_job(job)) {
             current_cpu_used += job.cpu_required;
             current_memory_used += job.memory_required;
-            
+        
             {
                 std::lock_guard<std::mutex> lock(running_jobs_mutex);
                 running_jobs.push_back(job);
@@ -521,7 +562,9 @@ public:
             } else {
                 int target_peer = select_offload_peer(source_peer);
                 if (target_peer != -1) {
+                    jobs_forwarded++;
                     forward_job_to_peer(target_peer, job);
+                    forwarded_jobs.push_back(job.job_id);
                 } else {
                    file << "[QUEUED] No suitable peer, queueing job " << job.job_id << std::endl;
                     std::lock_guard<std::mutex> lock(job_queue_mutex);
@@ -605,7 +648,8 @@ public:
         
         current_cpu_used -= job.cpu_required;
         current_memory_used -= job.memory_required;
-        
+        jobs_executed++; // i.e completely job is completed
+        executed_jobs.push_back(job.job_id);
         {
             std::lock_guard<std::mutex> lock(running_jobs_mutex);
             running_jobs.erase(
@@ -774,7 +818,12 @@ public:
         std::cout << "Current Load: " << calculate_load_score() << std::endl;
         std::cout << "CPU Used: " << current_cpu_used << "/" << CPU_CAPACITY << std::endl;
         std::cout << "Memory Used: " << current_memory_used << "/" << MEMORY_CAPACITY << std::endl;
-        
+
+        std::cout<<"Jobs-received from thrower: "<<direct_receives<<"\n";
+        std::cout<<"jobs-received from forwarding "<<forward_receives<<"\n";
+        std::cout<<"jobs  executed "<<jobs_executed<<"\n";
+        std::cout<<"Jobs off-loaded : "<<jobs_forwarded<<"\n";
+
         {
             std::lock_guard<std::mutex> lock(running_jobs_mutex);
             std::cout << "Running Jobs: " << running_jobs.size() << std::endl;
@@ -791,6 +840,24 @@ public:
             for (auto& pair : load_table) {
                 std::cout << "  Peer " << pair.first << ": " << pair.second.load_score << std::endl;
             }
+        }
+
+        {
+            std::lock_guard<std::mutex>lock(load_track_mutex);
+            auto [mean,stddev]=mean_and_stddev(load_tracker);
+            std::cout<<"average load: "<<mean<<"\n";
+        }
+    }
+
+
+    void track_loads(){
+        
+        while(running){
+            auto load_value = calculate_load_score();
+            load_track_mutex.lock();
+            load_tracker.push_back(load_value);
+            load_track_mutex.unlock();
+            std::this_thread::sleep_for(std::chrono::minutes(1));
         }
     }
     
@@ -811,6 +878,8 @@ public:
         std::thread queue_processor(&Peer::process_job_queue, this);
         queue_processor.detach();
         
+        std::thread load_caclulation_thread(&Peer::track_loads,this);
+        load_caclulation_thread.detach();
         std::cout << "\nPeer " << my_peer_id << " fully operational!" << std::endl;
         std::cout << "Press Enter to view statistics (type 'quit' to exit)..." << std::endl;
         
@@ -847,6 +916,9 @@ public:
         std::cout << "Peer " << my_peer_id << " shutdown complete" << std::endl;
     }
 };
+
+
+
 
 int main(int argc, char* argv[]) {
     if (argc < 2) {

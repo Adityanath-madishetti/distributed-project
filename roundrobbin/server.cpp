@@ -1,4 +1,4 @@
-// thrower.cpp - Job Thrower Server
+// thrower_rr.cpp - Basic Round Robin Job Thrower
 #include <iostream>
 #include <string>
 #include <vector>
@@ -14,13 +14,12 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <errno.h>
-#include "../../include/json.hpp"
-#include<fstream>
+#include "json.hpp"
+
 using json = nlohmann::json;
 
 #define TOTAL_PEERS 3
-#define MAX_JOBS 100
-// Network utility functions
+
 enum NetError {
     NET_OK = 0,
     NET_ERR_SYS = -1,
@@ -81,64 +80,56 @@ std::pair<bool, int> recv_string(int descriptor, std::string& msg) {
     return {true, NET_OK};
 }
 
-// Peer information structure
 struct PeerInfo {
     int peer_id;
-    std::string ip;
-    int port;
     int socket_fd;
     bool connected;
     bool ready;
     std::mutex socket_mutex;
     
-    PeerInfo(int id, std::string ip_addr, int p) 
-        : peer_id(id), ip(ip_addr), port(p), socket_fd(-1), connected(false), ready(false) {}
+    PeerInfo() : peer_id(-1), socket_fd(-1), connected(false), ready(false) {}
 };
 
-// Job Thrower Server Class
-class JobThrowerServer {
+class RoundRobinThrower {
 private:
-    std::ofstream file;
     int server_port;
     int server_socket;
-    std::map<int, PeerInfo*> peers;
+    std::vector<PeerInfo*> peers;  // index 0 = peer 1, index 1 = peer 2, etc.
     std::mutex peers_mutex;
     std::atomic<bool> running;
     std::atomic<uint64_t> job_counter;
-    std::atomic<uint64_t> jobs_completed;
     std::atomic<int> peers_ready;
+    std::atomic<int> current_peer_index;
     std::condition_variable cv_all_ready;
     std::mutex ready_mutex;
     
+
+
     std::mt19937 rng;
     std::uniform_int_distribution<int> cpu_dist;
     std::uniform_int_distribution<int> mem_dist;
     std::uniform_int_distribution<int> duration_dist;
     
 public:
-    JobThrowerServer(int port) 
-        : server_port(port), server_socket(-1), running(false), job_counter(0), peers_ready(0),
+    RoundRobinThrower(int port) 
+        : server_port(port), server_socket(-1), running(false), job_counter(0), 
+          peers_ready(0), current_peer_index(0),
           rng(std::random_device{}()),
-        cpu_dist(100, 250),          // CPU: 100-250 units (VERY HIGH)
-        mem_dist(400, 1200),         // Memory: 400-1200 MB (VERY HIGH)
-        duration_dist(4, 8)          // Duration: 4-8 seconds (LONGER)
-
+          cpu_dist(50, 150),
+          mem_dist(200, 800),
+          duration_dist(3, 7)
     {
-        file.open("logs.txt");
-        initialize_peers();
-    }
-    
-    ~JobThrowerServer() {
-        shutdown();
-        for (auto& pair : peers) {
-            delete pair.second;
+        // Initialize peer slots
+        for (int i = 0; i < TOTAL_PEERS; i++) {
+            peers.push_back(new PeerInfo());
         }
     }
     
-    void initialize_peers() {
-        peers[1] = new PeerInfo(1, "127.0.0.1", 8001);
-        peers[2] = new PeerInfo(2, "127.0.0.1", 8002);
-        peers[3] = new PeerInfo(3, "127.0.0.1", 8003);
+    ~RoundRobinThrower() {
+        shutdown();
+        for (auto peer : peers) {
+            delete peer;
+        }
     }
     
     bool start() {
@@ -149,11 +140,7 @@ public:
         }
         
         int opt = 1;
-        if (setsockopt(server_socket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
-            std::cerr << "setsockopt failed" << std::endl;
-            close(server_socket);
-            return false;
-        }
+        setsockopt(server_socket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
         
         sockaddr_in server_addr;
         std::memset(&server_addr, 0, sizeof(server_addr));
@@ -174,30 +161,25 @@ public:
         }
         
         running = true;
-        std::cout << "Job Thrower Server started on port " << server_port << std::endl;
+        std::cout << "=== ROUND ROBIN Job Thrower Started on port " << server_port << " ===" << std::endl;
         return true;
     }
     
     void accept_peers() {
-        while (running) {
+        while (running and peers_ready<TOTAL_PEERS) {
             sockaddr_in peer_addr;
             socklen_t addr_len = sizeof(peer_addr);
             int peer_socket = accept(server_socket, (sockaddr*)&peer_addr, &addr_len);
             
             if (peer_socket < 0) {
-                if (running) {
-                    std::cerr << "Accept failed" << std::endl;
-                }
+                if (running) std::cerr << "Accept failed" << std::endl;
                 continue;
             }
             
-            std::cout << "Peer connected from " 
-                      << inet_ntoa(peer_addr.sin_addr) << ":" 
-                      << ntohs(peer_addr.sin_port) << std::endl;
-            
-            std::thread handler(&JobThrowerServer::handle_peer_registration, this, peer_socket);
+            std::thread handler(&RoundRobinThrower::handle_peer_registration, this, peer_socket);
             handler.detach();
         }
+        
     }
     
     void handle_peer_registration(int socket_fd) {
@@ -205,7 +187,6 @@ public:
         auto [success, err] = recv_string(socket_fd, msg);
         
         if (!success) {
-            std::cerr << "Failed to receive registration from peer" << std::endl;
             close(socket_fd);
             return;
         }
@@ -216,40 +197,38 @@ public:
             if (reg_msg["type"] == "register") {
                 int peer_id = reg_msg["peer_id"];
                 
-                std::lock_guard<std::mutex> lock(peers_mutex);
-                if (peers.find(peer_id) != peers.end()) {
-                    peers[peer_id]->socket_fd = socket_fd;
-                    peers[peer_id]->connected = true;
-                    
-                    std::cout << "Peer " << peer_id << " registered successfully" << std::endl;
-                    
-                    std::thread response_handler(&JobThrowerServer::handle_peer_responses, this, peer_id);
-                    response_handler.detach();
-                } else {
-                    std::cerr << "Unknown peer_id: " << peer_id << std::endl;
+                if (peer_id < 1 || peer_id > TOTAL_PEERS) {
                     close(socket_fd);
+                    return;
                 }
+                
+                std::lock_guard<std::mutex> lock(peers_mutex);
+                int idx = peer_id - 1;
+                peers[idx]->peer_id = peer_id;
+                peers[idx]->socket_fd = socket_fd;
+                peers[idx]->connected = true;
+                
+                std::cout << "Peer " << peer_id << " connected" << std::endl;
+                
+                std::thread response_handler(&RoundRobinThrower::handle_peer_responses, this, idx);
+                response_handler.detach();
             }
         } catch (const std::exception& e) {
-            std::cerr << "Error parsing registration: " << e.what() << std::endl;
             close(socket_fd);
         }
     }
     
-    void handle_peer_responses(int peer_id) {
-        peers_mutex.lock();
-        PeerInfo* peer = peers[peer_id];
-        peers_mutex.unlock();
+    void handle_peer_responses(int peer_idx) {
+        PeerInfo* peer = peers[peer_idx];
         
         while (running && peer->connected) {
             std::string msg;
             auto [success, err] = recv_string(peer->socket_fd, msg);
             
             if (!success) {
-                std::cout << "Peer " << peer_id << " disconnected" << std::endl;
+                std::cout << "Peer " << peer->peer_id << " disconnected" << std::endl;
                 peer->connected = false;
                 close(peer->socket_fd);
-                peer->socket_fd = -1;
                 break;
             }
             
@@ -263,47 +242,37 @@ public:
                         peers_ready++;
                     }
                     cv_all_ready.notify_all();
-                    std::cout << "Peer " << peer_id << " is ready to accept jobs" << std::endl;
-                } else if (response["type"] == "job_completed") { // happens after jobsendings
-                    jobs_completed++;
-                    file<< "Job " << response["job_id"] << " completed by peer " << peer_id << std::endl;
-                    if(job_counter==MAX_JOBS){
-                        for (auto& pair : peers) {
-                                if (pair.second->connected) {
-                                    json j;
-                                    j["type"]="completed";
-                                    std::string dp = j.dump();
-                                    send_string(peer->socket_fd,dp);
-                                }
-                        }
-                    }
-                }else if(response["type"]=="my_avg_load"){
-                    std::cout<<"average load of the peer_id: "<<peer_id<<" "<<response["load"].get<double>()<<"\n";
+                    std::cout << "Peer " << peer->peer_id << " ready" << std::endl;
+                } else if (response["type"] == "job_completed") {
+                    std::cout << "Job " << response["job_id"] << " completed by Peer " << peer->peer_id << std::endl;
+                } else if (response["type"] == "job_rejected") {
+                    std::cout << "Job " << response["job_id"] << " REJECTED by Peer " << peer->peer_id 
+                              << " (Reason: " << response["reason"] << ")" << std::endl;
                 }
             } catch (const std::exception& e) {
-                std::cerr << "Error parsing response from peer " << peer_id << ": " << e.what() << std::endl;
             }
         }
     }
     
     void generate_and_send_jobs() {
-        std::cout << "Job generation thread started" << std::endl;
+        std::cout << "\n=== Starting ROUND ROBIN job distribution ===" << std::endl;
         
-        while (running and job_counter<MAX_JOBS) {
+        while (running) {
             json job = create_job();
-            int target_peer = select_random_peer();
             
-            if (target_peer != -1) {
-                send_job_to_peer(target_peer, job);
+            // ROUND ROBIN: Get next peer in sequence
+            int target_peer_idx = get_random_peer();
+            
+            if (target_peer_idx != -1) {
+                send_job_to_peer(target_peer_idx, job);
             } else {
-                std::cerr << "No connected peers available" << std::endl;
+                std::cerr << "No peers available!" << std::endl;
             }
             
-            std::uniform_int_distribution<int> wait_dist(500, 700)    ;     // 0.5-1 second (VERY FAST!)
+            // Wait before next job
+            std::uniform_int_distribution<int> wait_dist(800, 1500);
             std::this_thread::sleep_for(std::chrono::milliseconds(wait_dist(rng)));
         }
-
-        std::cout<<"JOB GENERATION IS COMPLETED"<<"\n";
     }
     
     json create_job() {
@@ -317,42 +286,62 @@ public:
         return job;
     }
     
-    int select_random_peer() {
+    int get_next_peer_round_robin() {
         std::lock_guard<std::mutex> lock(peers_mutex);
         
-        std::vector<int> ready_peers;
-        for (auto& pair : peers) {
-            if (pair.second->connected && pair.second->ready) {
-                ready_peers.push_back(pair.first);
+        int start_idx = current_peer_index;
+        
+        // Find next connected and ready peer
+        do {
+            if (peers[current_peer_index]->connected && peers[current_peer_index]->ready) {
+                int selected = current_peer_index;
+                current_peer_index = (current_peer_index + 1) % TOTAL_PEERS;
+                return selected;
+            }
+            current_peer_index = (current_peer_index + 1) % TOTAL_PEERS;
+        } while (current_peer_index != start_idx);
+        
+        return -1;  // No peers available
+    }
+    
+
+    int get_random_peer() {
+        std::lock_guard<std::mutex> lock(peers_mutex);
+        
+        // Collect all connected and ready peers
+        std::vector<int> available_peers;
+        for (int i = 0; i < TOTAL_PEERS; i++) {
+            if (peers[i]->connected && peers[i]->ready) {
+                available_peers.push_back(i);
             }
         }
         
-        if (ready_peers.empty()) return -1;
-        
-        std::uniform_int_distribution<size_t> dist(0, ready_peers.size() - 1);
-        return ready_peers[dist(rng)];
-    }
-    
-    bool send_job_to_peer(int peer_id, const json& job) {
-        std::lock_guard<std::mutex> lock(peers_mutex);
-        
-        if (peers.find(peer_id) == peers.end() || !peers[peer_id]->connected) {
-            return false;
+        // If no peers available
+        if (available_peers.empty()) {
+            return -1;
         }
         
-        PeerInfo* peer = peers[peer_id];
+        // Select random peer from available ones
+        std::uniform_int_distribution<size_t> dist(0, available_peers.size() - 1);
+        return available_peers[dist(rng)];
+    }
+
+    bool send_job_to_peer(int peer_idx, const json& job) {
+        std::lock_guard<std::mutex> lock(peers_mutex);
+        
+        PeerInfo* peer = peers[peer_idx];
+        if (!peer->connected) return false;
+        
         std::lock_guard<std::mutex> socket_lock(peer->socket_mutex);
         
         std::string job_str = job.dump();
         auto [success, err] = send_string(peer->socket_fd, job_str);
         
         if (success) {
-            file << "Job " << job["job_id"] << " sent to peer " << peer_id << std::endl;
+            std::cout << "[RR] Job " << job["job_id"] << " → Peer " << peer->peer_id << std::endl;
             return true;
-        } else {
-            peer->connected = false;
-            return false;
         }
+        return false;
     }
     
     void shutdown() {
@@ -364,52 +353,45 @@ public:
         }
         
         std::lock_guard<std::mutex> lock(peers_mutex);
-        for (auto& pair : peers) {
-            if (pair.second->connected && pair.second->socket_fd >= 0) {
-                close(pair.second->socket_fd);
-                pair.second->connected = false;
+        for (auto peer : peers) {
+            if (peer->connected && peer->socket_fd >= 0) {
+                close(peer->socket_fd);
+                peer->connected = false;
             }
         }
-        
-        std::cout << "Server shutdown complete" << std::endl;
     }
     
     void print_statistics() {
         std::lock_guard<std::mutex> lock(peers_mutex);
-        std::cout << "\n=== Job Thrower Statistics ===" << std::endl;
-        std::cout << "Total jobs generated: " << job_counter << std::endl;
-        std::cout << "Connected peers: ";
-        for (auto& pair : peers) {
-            if (pair.second->connected) {
-                std::cout << pair.first << " ";
+        std::cout << "\n=== ROUND ROBIN Statistics ===" << std::endl;
+        std::cout << "Total Jobs Sent: " << job_counter << std::endl;
+        std::cout << "Connected Peers: ";
+        for (auto peer : peers) {
+            if (peer->connected) {
+                std::cout << peer->peer_id << " ";
             }
         }
         std::cout << std::endl;
     }
     
     void run() {
-        if (!start()) {
-            std::cerr << "Failed to start server" << std::endl;
-            return;
-        }
+        if (!start()) return;
         
-        std::thread accept_thread(&JobThrowerServer::accept_peers, this);
+        std::thread accept_thread(&RoundRobinThrower::accept_peers, this);
         accept_thread.detach();
         
         std::unique_lock<std::mutex> lck(ready_mutex);
         cv_all_ready.wait(lck, [this]{ return peers_ready == TOTAL_PEERS; });
         
-        std::cout << "\nAll peers ready! Starting job generation..." << std::endl;
+        std::cout << "\nAll " << TOTAL_PEERS << " peers ready!" << std::endl;
         
-        std::thread job_thread(&JobThrowerServer::generate_and_send_jobs, this);
+        std::thread job_thread(&RoundRobinThrower::generate_and_send_jobs, this);
         job_thread.detach();
         
-        std::cout << "Press Enter to view statistics (type 'quit' to exit)..." << std::endl;
+        std::cout << "\nPress Enter for statistics (type 'quit' to exit)..." << std::endl;
         std::string input;
         while (std::getline(std::cin, input)) {
-            if (input == "quit") {
-                break;
-            }
+            if (input == "quit") break;
             print_statistics();
         }
     }
@@ -417,12 +399,9 @@ public:
 
 int main(int argc, char* argv[]) {
     int port = 9000;
+    if (argc > 1) port = std::atoi(argv[1]);
     
-    if (argc > 1) {
-        port = std::atoi(argv[1]);
-    }
-    
-    JobThrowerServer server(port);
+    RoundRobinThrower server(port);
     server.run();
     
     return 0;
