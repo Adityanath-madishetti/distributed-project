@@ -1,206 +1,231 @@
 
-[FORWARDED] Job 7 from peer 2
- (Load: 0.18457, CPU: 118/1000, MEM: 1165/4096)
-[EXECUTING] Job 7 for 5 seconds
+[RECEIVED] Job 4 from job thrower
+ (Load: 0.159363, CPU: 145/1000, MEM: 741/4096)
+[EXECUTING] Job 4 for 4 seconds
 
-[FORWARDED] Job 9 from peer 2
- (Load: 0.417322, CPU: 329/1000, MEM: 2252/4096)
-[EXECUTING] Job 9 for 6 seconds
+[RECEIVED] Job 5 from job thrower
+ (Load: 0.314638, CPU: 277/1000, MEM: 1520/4096)
+[EXECUTING] Job 5 for 7 seconds
+
+[RECEIVED] Job 8 from job thrower
+ (Load: 0.581532, CPU: 527/1000, MEM: 2717/4096)
+[EXECUTING] Job 8 for 4 seconds
 
 [RECEIVED] Job 10 from job thrower
- (Load: 0.583566, CPU: 505/1000, MEM: 2873/4096)
-[EXECUTING] Job 10 for 7 seconds
-
-[RECEIVED] Job 12 from job thrower
- (Load: 0.782442, CPU: 682/1000, MEM: 3822/4096)
-[EXECUTING] Job 12 for 8 seconds
+ (Load: 0.726401, CPU: 676/1000, MEM: 3285/4096)
+[EXECUTING] Job 10 for 5 seconds
+[COMPLETED] Job 4 (Load now: 0.567037)
 
 [RECEIVED] Job 14 from job thrower
-[OVERLOADED] Cannot accept job 14 (Load: 0.782442)
-[OFFLOADING] Job 14 to peer 1
-[COMPLETED] Job 7 (Load now: 0.597873)
+ (Load: 0.68993, CPU: 645/1000, MEM: 3102/4096)
+[EXECUTING] Job 14 for 8 seconds
+[COMPLETED] Job 8 (Load now: 0.423035)
 
-[RECEIVED] Job 18 from job thrower
- (Load: 0.860177, CPU: 807/1000, MEM: 3850/4096)
-[EXECUTING] Job 18 for 7 seconds
-[COMPLETED] Job 9 (Load now: 0.627424)
+[RECEIVED] Job 15 from job thrower
+ (Load: 0.615525, CPU: 604/1000, MEM: 2592/4096)
+[EXECUTING] Job 15 for 6 seconds
+[COMPLETED] Job 5 (Load now: 0.460251)
+[COMPLETED] Job 10 (Load now: 0.315382)
+
+[RECEIVED] Job 19 from job thrower
+ (Load: 0.504563, CPU: 505/1000, MEM: 2064/4096)
+[EXECUTING] Job 19 for 8 seconds
+
+[RECEIVED] Job 20 from job thrower
+ (Load: 0.667623, CPU: 649/1000, MEM: 2849/4096)
+[EXECUTING] Job 20 for 7 seconds
 
 [RECEIVED] Job 21 from job thrower
- (Load: 0.769391, CPU: 747/1000, MEM: 3289/4096)
-[EXECUTING] Job 21 for 5 seconds
-[COMPLETED] Job 10 (Load now: 0.603147)
+[OVERLOADED] Cannot accept job 21 (Load: 0.667623)
+[OFFLOADING] Job 21 to peer 1
 
-[RECEIVED] Job 22 from job thrower
- (Load: 0.797234, CPU: 720/1000, MEM: 3740/4096)
-[EXECUTING] Job 22 for 6 seconds
-[COMPLETED] Job 12 (Load now: 0.598359)
+[RECEIVED] Job 24 from job thrower
+[OVERLOADED] Cannot accept job 24 (Load: 0.667623)
+[OFFLOADING] Job 24 to peer 2
 
-[RECEIVED] Job 28 from job thrower
- (Load: 0.706015, CPU: 643/1000, MEM: 3279/4096)
-[EXECUTING] Job 28 for 5 seconds
-[COMPLETED] Job 21 (Load now: 0.564048)
+[RECEIVED] Job 25 from job thrower
+[OVERLOADED] Cannot accept job 25 (Load: 0.667623)
+[OFFLOADING] Job 25 to peer 2
+
+[FORWARDED] Job 25 from peer 1
+[OVERLOADED] Cannot accept job 25 (Load: 0.667623)
+[QUEUED] Job 25 exceeded max hops
+[COMPLETED] Job 15 (Load now: 0.475133)
+[QUEUE->EXEC] Job 25
+[EXECUTING] Job 25 for 7 seconds
+
+[FORWARDED] Job 26 from peer 2
+[OVERLOADED] Cannot accept job 26 (Load: 0.711334)
+[OFFLOADING] Job 26 to peer 1
+
+[FORWARDED] Job 27 from peer 2
+[OVERLOADED] Cannot accept job 27 (Load: 0.711334)
+[OFFLOADING] Job 27 to peer 1
+[COMPLETED] Job 14 (Load now: 0.588442)
+
+[RECEIVED] Job 29 from job thrower
+ (Load: 0.699727, CPU: 682/1000, MEM: 2975/4096)
+[EXECUTING] Job 29 for 4 seconds
 
 [RECEIVED] Job 30 from job thrower
- (Load: 0.77688, CPU: 724/1000, MEM: 3507/4096)
-[EXECUTING] Job 30 for 8 seconds
-[COMPLETED] Job 18 (Load now: 0.514577)
+[OVERLOADED] Cannot accept job 30 (Load: 0.699727)
+[OFFLOADING] Job 30 to peer 1
+[COMPLETED] Job 20 (Load now: 0.536667)
 
-[FORWARDED] Job 32 from peer 2
- (Load: 0.704054, CPU: 698/1000, MEM: 2921/4096)
+[RECEIVED] Job 32 from job thrower
+ (Load: 0.783763, CPU: 769/1000, MEM: 3301/4096)
 [EXECUTING] Job 32 for 6 seconds
-[COMPLETED] Job 22 (Load now: 0.509966)
-[COMPLETED] Job 28 (Load now: 0.40231)
+[COMPLETED] Job 19 (Load now: 0.594583)
 
-[RECEIVED] Job 37 from job thrower
- (Load: 0.550733, CPU: 566/1000, MEM: 2162/4096)
-[EXECUTING] Job 37 for 5 seconds
+[FORWARDED] Job 34 from peer 2
+ (Load: 0.825399, CPU: 827/1000, MEM: 3371/4096)
+[EXECUTING] Job 34 for 6 seconds
 
-[RECEIVED] Job 40 from job thrower
- (Load: 0.68472, CPU: 712/1000, MEM: 2637/4096)
-[EXECUTING] Job 40 for 4 seconds
+[FORWARDED] Job 35 from peer 2
+[OVERLOADED] Cannot accept job 35 (Load: 0.825399)
+[OFFLOADING] Job 35 to peer 1
+[COMPLETED] Job 29 (Load now: 0.714114)
+
+[RECEIVED] Job 36 from job thrower
+[OVERLOADED] Cannot accept job 36 (Load: 0.714114)
+[OFFLOADING] Job 36 to peer 2
+[COMPLETED] Job 25 (Load now: 0.477912)
+
+[RECEIVED] Job 38 from job thrower
+ (Load: 0.629062, CPU: 643/1000, MEM: 2491/4096)
+[EXECUTING] Job 38 for 6 seconds
+
+[FORWARDED] Job 41 from peer 2
+ (Load: 0.881598, CPU: 872/1000, MEM: 3670/4096)
+[EXECUTING] Job 41 for 8 seconds
+[COMPLETED] Job 32 (Load now: 0.634502)
 
 [FORWARDED] Job 42 from peer 2
-[OVERLOADED] Cannot accept job 42 (Load: 0.68472)
-[OFFLOADING] Job 42 to peer 1
-[COMPLETED] Job 32 (Load now: 0.495242)
-
-[FORWARDED] Job 43 from peer 2
- (Load: 0.65187, CPU: 633/1000, MEM: 2786/4096)
-[EXECUTING] Job 43 for 8 seconds
-[COMPLETED] Job 30 (Load now: 0.439038)
-
-[RECEIVED] Job 44 from job thrower
- (Load: 0.641029, CPU: 619/1000, MEM: 2761/4096)
-[EXECUTING] Job 44 for 8 seconds
-[COMPLETED] Job 37 (Load now: 0.492606)
-[COMPLETED] Job 40 (Load now: 0.35862)
-
-[RECEIVED] Job 47 from job thrower
- (Load: 0.520751, CPU: 552/1000, MEM: 1941/4096)
-[EXECUTING] Job 47 for 4 seconds
+ (Load: 0.831167, CPU: 883/1000, MEM: 3086/4096)
+[EXECUTING] Job 42 for 6 seconds
+[COMPLETED] Job 34 (Load now: 0.600351)
+[COMPLETED] Job 38 (Load now: 0.449202)
 
 [RECEIVED] Job 48 from job thrower
- (Load: 0.753753, CPU: 753/1000, MEM: 3092/4096)
-[EXECUTING] Job 48 for 5 seconds
-[COMPLETED] Job 47 (Load now: 0.591622)
+ (Load: 0.647308, CPU: 628/1000, MEM: 2770/4096)
+[EXECUTING] Job 48 for 7 seconds
+[COMPLETED] Job 42 (Load now: 0.450643)
 
-[FORWARDED] Job 56 from peer 1
- (Load: 0.712226, CPU: 668/1000, MEM: 3189/4096)
-[EXECUTING] Job 56 for 5 seconds
-[COMPLETED] Job 48 (Load now: 0.479223)
-[COMPLETED] Job 43 (Load now: 0.322595)
+[FORWARDED] Job 52 from peer 1
+ (Load: 0.679507, CPU: 633/1000, MEM: 3069/4096)
+[EXECUTING] Job 52 for 4 seconds
 
-[FORWARDED] Job 57 from peer 1
- (Load: 0.511345, CPU: 529/1000, MEM: 1986/4096)
-[EXECUTING] Job 57 for 5 seconds
-[COMPLETED] Job 44 (Load now: 0.309354)
+[RECEIVED] Job 53 from job thrower
+[OVERLOADED] Cannot accept job 53 (Load: 0.679507)
+[OFFLOADING] Job 53 to peer 1
 
-[RECEIVED] Job 58 from job thrower
- (Load: 0.530819, CPU: 511/1000, MEM: 2296/4096)
-[EXECUTING] Job 58 for 7 seconds
+[FORWARDED] Job 54 from peer 2
+[OVERLOADED] Cannot accept job 54 (Load: 0.679507)
+[OFFLOADING] Job 54 to peer 1
+[COMPLETED] Job 41 (Load now: 0.42697)
 
-[FORWARDED] Job 59 from peer 2
- (Load: 0.717087, CPU: 729/1000, MEM: 2864/4096)
-[EXECUTING] Job 59 for 5 seconds
+[RECEIVED] Job 55 from job thrower
+ (Load: 0.571449, CPU: 560/1000, MEM: 2411/4096)
+[EXECUTING] Job 55 for 7 seconds
 
-[RECEIVED] Job 62 from job thrower
-[OVERLOADED] Cannot accept job 62 (Load: 0.717087)
-[OFFLOADING] Job 62 to peer 2
-[COMPLETED] Job 56 (Load now: 0.596484)
-[COMPLETED] Job 57 (Load now: 0.407734)
-[COMPLETED] Job 59 (Load now: 0.221465)
+[FORWARDED] Job 56 from peer 2
+ (Load: 0.735489, CPU: 732/1000, MEM: 3034/4096)
+[EXECUTING] Job 56 for 4 seconds
 
-[FORWARDED] Job 68 from peer 2
- (Load: 0.393389, CPU: 391/1000, MEM: 1626/4096)
-[EXECUTING] Job 68 for 7 seconds
-[COMPLETED] Job 58 (Load now: 0.171924)
+[FORWARDED] Job 57 from peer 2
+[OVERLOADED] Cannot accept job 57 (Load: 0.735489)
+[OFFLOADING] Job 57 to peer 1
+[COMPLETED] Job 52 (Load now: 0.506625)
+[COMPLETED] Job 48 (Load now: 0.308519)
+
+[RECEIVED] Job 61 from job thrower
+ (Load: 0.53007, CPU: 555/1000, MEM: 2018/4096)
+[EXECUTING] Job 61 for 7 seconds
+[COMPLETED] Job 56 (Load now: 0.36603)
+
+[RECEIVED] Job 66 from job thrower
+ (Load: 0.544634, CPU: 542/1000, MEM: 2247/4096)
+[EXECUTING] Job 66 for 7 seconds
+
+[FORWARDED] Job 67 from peer 1
+ (Load: 0.708784, CPU: 701/1000, MEM: 2951/4096)
+[EXECUTING] Job 67 for 8 seconds
+[COMPLETED] Job 55 (Load now: 0.564305)
+
+[FORWARDED] Job 68 from peer 1
+ (Load: 0.712391, CPU: 645/1000, MEM: 3332/4096)
+[EXECUTING] Job 68 for 8 seconds
+
+[FORWARDED] Job 69 from peer 2
+[OVERLOADED] Cannot accept job 69 (Load: 0.712391)
+[OFFLOADING] Job 69 to peer 1
 
 [RECEIVED] Job 70 from job thrower
- (Load: 0.368903, CPU: 372/1000, MEM: 1492/4096)
-[EXECUTING] Job 70 for 7 seconds
-
-[FORWARDED] Job 71 from peer 2
- (Load: 0.586015, CPU: 568/1000, MEM: 2511/4096)
-[EXECUTING] Job 71 for 8 seconds
-
-[FORWARDED] Job 72 from peer 1
- (Load: 0.737583, CPU: 742/1000, MEM: 2994/4096)
-[EXECUTING] Job 72 for 8 seconds
-
-[RECEIVED] Job 74 from job thrower
-[OVERLOADED] Cannot accept job 74 (Load: 0.737583)
-[OFFLOADING] Job 74 to peer 2
-
-[RECEIVED] Job 75 from job thrower
-[OVERLOADED] Cannot accept job 75 (Load: 0.737583)
-[OFFLOADING] Job 75 to peer 1
-
-[RECEIVED] Job 77 from job thrower
-[OVERLOADED] Cannot accept job 77 (Load: 0.737583)
-[OFFLOADING] Job 77 to peer 2
+[OVERLOADED] Cannot accept job 70 (Load: 0.712391)
+[OFFLOADING] Job 70 to peer 1
+[COMPLETED] Job 61 (Load now: 0.490839)
+[COMPLETED] Job 66 (Load now: 0.312236)
 
 [RECEIVED] Job 79 from job thrower
-[OVERLOADED] Cannot accept job 79 (Load: 0.737583)
-[OFFLOADING] Job 79 to peer 1
-
-[RECEIVED] Job 80 from job thrower
-[OVERLOADED] Cannot accept job 80 (Load: 0.737583)
-[OFFLOADING] Job 80 to peer 1
+ (Load: 0.50346, CPU: 503/1000, MEM: 2065/4096)
+[EXECUTING] Job 79 for 6 seconds
 
 [FORWARDED] Job 80 from peer 2
-[OVERLOADED] Cannot accept job 80 (Load: 0.737583)
-[QUEUED] Job 80 exceeded max hops
-[COMPLETED] Job 68 (Load now: 0.565659)
-[QUEUE->EXEC] Job 80
+ (Load: 0.703402, CPU: 735/1000, MEM: 2687/4096)
 [EXECUTING] Job 80 for 8 seconds
+[COMPLETED] Job 67 (Load now: 0.539252)
 
-[FORWARDED] Job 81 from peer 1
-[OVERLOADED] Cannot accept job 81 (Load: 0.749784)
-[OFFLOADING] Job 81 to peer 2
+[RECEIVED] Job 81 from job thrower
+ (Load: 0.68853, CPU: 726/1000, MEM: 2590/4096)
+[EXECUTING] Job 81 for 4 seconds
+[COMPLETED] Job 68 (Load now: 0.540444)
 
-[FORWARDED] Job 82 from peer 2
-[OVERLOADED] Cannot accept job 82 (Load: 0.749784)
-[OFFLOADING] Job 82 to peer 1
-[COMPLETED] Job 70 (Load now: 0.552805)
+[RECEIVED] Job 83 from job thrower
+ (Load: 0.770948, CPU: 816/1000, MEM: 2881/4096)
+[EXECUTING] Job 83 for 5 seconds
 
 [RECEIVED] Job 84 from job thrower
- (Load: 0.7054, CPU: 634/1000, MEM: 3328/4096)
-[EXECUTING] Job 84 for 5 seconds
-[COMPLETED] Job 71 (Load now: 0.488288)
-[COMPLETED] Job 72 (Load now: 0.33672)
+[OVERLOADED] Cannot accept job 84 (Load: 0.770948)
+[OFFLOADING] Job 84 to peer 1
 
-[RECEIVED] Job 86 from job thrower
- (Load: 0.493013, CPU: 399/1000, MEM: 2597/4096)
-[EXECUTING] Job 86 for 5 seconds
+[RECEIVED] Job 85 from job thrower
+[OVERLOADED] Cannot accept job 85 (Load: 0.770948)
+[OFFLOADING] Job 85 to peer 1
+[COMPLETED] Job 81 (Load now: 0.62167)
+
+[RECEIVED] Job 88 from job thrower
+ (Load: 0.838745, CPU: 901/1000, MEM: 3053/4096)
+[EXECUTING] Job 88 for 6 seconds
 
 [RECEIVED] Job 89 from job thrower
- (Load: 0.621681, CPU: 514/1000, MEM: 3208/4096)
-[EXECUTING] Job 89 for 5 seconds
+[OVERLOADED] Cannot accept job 89 (Load: 0.838745)
+[OFFLOADING] Job 89 to peer 2
+[COMPLETED] Job 79 (Load now: 0.64752)
+[COMPLETED] Job 83 (Load now: 0.417016)
 
-[RECEIVED] Job 90 from job thrower
- (Load: 0.787504, CPU: 660/1000, MEM: 4009/4096)
-[EXECUTING] Job 90 for 4 seconds
+[RECEIVED] Job 92 from job thrower
+ (Load: 0.602106, CPU: 622/1000, MEM: 2344/4096)
+[EXECUTING] Job 92 for 4 seconds
+[COMPLETED] Job 80 (Load now: 0.402164)
 
-[RECEIVED] Job 91 from job thrower
-[OVERLOADED] Cannot accept job 91 (Load: 0.787504)
-[OFFLOADING] Job 91 to peer 1
-[COMPLETED] Job 84 (Load now: 0.634909)
+[FORWARDED] Job 95 from peer 1
+ (Load: 0.592951, CPU: 589/1000, MEM: 2453/4096)
+[EXECUTING] Job 95 for 8 seconds
+[COMPLETED] Job 88 (Load now: 0.375877)
 
-[RECEIVED] Job 93 from job thrower
- (Load: 0.797303, CPU: 711/1000, MEM: 3796/4096)
-[EXECUTING] Job 93 for 8 seconds
-[COMPLETED] Job 80 (Load now: 0.613177)
-[COMPLETED] Job 86 (Load now: 0.456884)
-
-[RECEIVED] Job 95 from job thrower
- (Load: 0.589838, CPU: 576/1000, MEM: 2501/4096)
-[EXECUTING] Job 95 for 7 seconds
-[COMPLETED] Job 90 (Load now: 0.424016)
-[COMPLETED] Job 89 (Load now: 0.295348)
+[RECEIVED] Job 98 from job thrower
+ (Load: 0.55277, CPU: 572/1000, MEM: 2146/4096)
+[EXECUTING] Job 98 for 4 seconds
+[COMPLETED] Job 92 (Load now: 0.36768)
 
 [RECEIVED] Job 99 from job thrower
- (Load: 0.436226, CPU: 458/1000, MEM: 1653/4096)
-[EXECUTING] Job 99 for 4 seconds
-[COMPLETED] Job 99 (Load now: 0.295348)
-[COMPLETED] Job 93 (Load now: 0.132954)
-[COMPLETED] Job 95 (Load now: 0)
+ (Load: 0.507429, CPU: 563/1000, MEM: 1737/4096)
+[EXECUTING] Job 99 for 7 seconds
+
+[RECEIVED] Job 100 from job thrower
+ (Load: 0.638512, CPU: 697/1000, MEM: 2256/4096)
+[EXECUTING] Job 100 for 8 seconds
+[COMPLETED] Job 98 (Load now: 0.461619)
+[COMPLETED] Job 95 (Load now: 0.270832)
+[COMPLETED] Job 99 (Load now: 0.131084)
+[COMPLETED] Job 100 (Load now: 0)
